@@ -1,9 +1,13 @@
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import logoImg from "../../assets/logo.svg"
 import { Input } from "../../components/input"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { auth } from "../../services/firebaseConnection"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { useEffect, useState } from "react"
+
 
 const schema = z.object({
   name: z.string().nonempty("O campo nome é obrigatório"),
@@ -18,14 +22,37 @@ type FormData = {
 }
 
 function Register() {
+  const [loading, setLoading] = useState(true)
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
     mode: "onChange"
   })
+  const navigate = useNavigate()
 
   const onSubmit = (data: FormData) => {
     console.log(data)
+    createUserWithEmailAndPassword(auth, data.email, data.password)
+      .then((user) => {
+        console.log("USUARIO REGISTRADO", user.user)
+        updateProfile(user.user, { displayName: data.name })
+        navigate("/dashboard", { replace: true })
+      })
+      .catch((err) => console.log("ERRO AO CADASTRAR ESTE USUARIO", err))
   }
+
+  useEffect(() => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      navigate("/dashboard", { replace: true })
+    } else {
+      setLoading(false);
+    }
+  }, [])
+
+  if (loading) {
+    return null
+  }
+
 
   return (
     <>
@@ -65,11 +92,12 @@ function Register() {
             />
           </div>
 
-          <button type="submit" className="bg-zinc-900 w-full rounded-md text-white h-10 font=medium">Acessar</button>
+          <button type="submit" className="bg-zinc-900 w-full rounded-md text-white h-10 font=medium">Cadastrar</button>
         </form>
 
         <Link to="/login"> Já possui uma conta? Faça o login!</Link>
       </div>
+
     </>
   )
 }
