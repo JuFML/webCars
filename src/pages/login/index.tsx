@@ -1,9 +1,12 @@
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import logoImg from "../../assets/logo.svg"
 import { Input } from "../../components/input"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { auth } from "../../services/firebaseConnection"
+import { useEffect, useState } from "react"
 
 const schema = z.object({
   email: z.string().email("E-mail inválido").nonempty("O campo email é obrigatório"),
@@ -16,13 +19,33 @@ type FormData = {
 }
 
 function Login() {
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
     mode: "onChange"
   })
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
+    signInWithEmailAndPassword(auth, data.email, data.password)
+      .then((user) => {
+        console.log("LOGADO COM SUCESSO", user)
+        navigate("/dashboard", { replace: true })
+      })
+      .catch((err) => console.log("ERRO AO LOGAR", err))
+  }
+
+  useEffect(() => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      navigate("/dashboard", { replace: true })
+    } else {
+      setLoading(false);
+    }
+  }, [])
+
+  if (loading) {
+    return null
   }
 
   return (
