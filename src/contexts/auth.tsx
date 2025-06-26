@@ -1,4 +1,4 @@
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { auth } from '../services/firebaseConnection'
 
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loadingAuth, setLoadingAuth] = useState(true)
 
   const logout = () => {
-    auth.signOut()
+    signOut(auth)
   }
 
   const updateUserInfo = ({ name, uid, email }: UserProps) => {

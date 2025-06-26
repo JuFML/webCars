@@ -16,8 +16,8 @@ const Header = () => {
 
         {!loadingAuth && !signed && (
           <Link to="/login">
-            <div className="border-2 rounded-full p-1 border-gray-500 cursor-pointer">
-              <FiLogIn size={24} color="#000" />
+            <div className="border-2 rounded-full p-1 border-black cursor-pointer">
+              <FiLogIn size={24} color="#000" title="Login" />
             </div>
           </Link>
         )}
@@ -25,13 +25,13 @@ const Header = () => {
         {!loadingAuth && signed && (
           <div className="flex gap-5">
             <Link to="/dashboard">
-              <div className="border-2 rounded-full p-1 border-gray-500 cursor-pointer">
-                <FiUser size={24} color="#000" />
+              <div className="border-2 rounded-full p-1 border-black cursor-pointer">
+                <FiUser size={24} color="#000" title="Dashboard" />
               </div>
             </Link>
 
-            <div className="border-2 rounded-full p-1 border-gray-500 cursor-pointer" onClick={logout}>
-              <FiLogOut size={24} color="#000" />
+            <div className="border-2 rounded-full p-1 border-black cursor-pointer" onClick={logout}>
+              <FiLogOut size={24} color="#000" title="Logout" />
             </div>
           </div>
         )}
