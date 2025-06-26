@@ -5,7 +5,9 @@ import { auth } from '../services/firebaseConnection'
 interface AuthContextData {
   signed: boolean;
   loadingAuth: boolean;
-  logout: () => void
+  logout: () => void;
+  updateUserInfo: ({ name, uid, email }: UserProps) => void;
+  user: UserProps | null;
 }
 
 interface AuthProviderProps {
@@ -26,6 +28,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     auth.signOut()
+  }
+
+  const updateUserInfo = ({ name, uid, email }: UserProps) => {
+    setUser({ name, uid, email })
   }
 
 
@@ -52,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ signed: !!user, loadingAuth, logout }}>
+    <AuthContext.Provider value={{ signed: !!user, loadingAuth, logout, updateUserInfo, user }}>
       {children}
     </AuthContext.Provider>
   )
