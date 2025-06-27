@@ -1,10 +1,11 @@
+import DashboardHeader from "../../../components/dashboardHeader"
 
 
 function New() {
 
   return (
     <>
-      <h1>Cadastr Carro</h1>
+      <DashboardHeader />
     </>
   )
 }
