@@ -1,9 +1,14 @@
-import { FiUpload } from "react-icons/fi";
-import DashboardHeader from "../../components/dashboardHeader";
+import { FiTrash, FiUpload } from "react-icons/fi"
+import DashboardHeader from "../../components/dashboardHeader"
 import { Input } from "../../components/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useContext, useState, type ChangeEvent } from "react"
+import { AuthContext } from "../../contexts/auth"
+import { v4 as uuidv4 } from 'uuid'
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { storage } from "../../services/firebaseConnection"
 
 const schema = z.object({
   name: z.string().nonempty("O nome do carro é obrigatório"),
@@ -20,15 +25,71 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+interface carImageProps {
+  name: string,
+  userUid: string,
+  previewUrl: string,
+  url: string
+}
+
 
 function Dashboard() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange"
   })
+  const [carImages, setCarImages] = useState<carImageProps[]>([])
+  const { user } = useContext(AuthContext)
 
   const onSubmit = (data: FormData) => {
     console.log(data)
+    reset()
+  }
+
+  const handleUpload = (image: File) => {
+    if (!user?.uid) {
+      return
+    }
+    const currentUserUid = user.uid
+    const imageUid = uuidv4()
+
+    const uploadRef = ref(storage, `images/${currentUserUid}/${imageUid}`)
+
+    uploadBytes(uploadRef, image)
+      .then((snapshot) => {
+        getDownloadURL(snapshot.ref).then(downloadURL => {
+          const imageItem = {
+            name: imageUid,
+            userUid: currentUserUid,
+            previewUrl: URL.createObjectURL(image),
+            url: downloadURL
+          }
+          setCarImages((prev) => [...prev, imageItem])
+        })
+      }).catch(err => console.log(err))
+  }
+
+  const handleDeleteImage = (image: carImageProps) => {
+    const imagePath = `images/${image.userUid}/${image.name}`
+
+    const imageRef = ref(storage, imagePath)
+    deleteObject(imageRef).then(() => {
+      console.log("Imagem deletada")
+      setCarImages(carImages.filter(item => item.name !== image.name))
+    }).catch((err) => console.log("Erro ao deletar", err))
+  }
+
+  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const image = e.target.files[0]
+
+      if (image.type === 'image/jpeg' || image.type === 'image/png') {
+        handleUpload(image)
+      } else {
+        alert("Envie uma imagem jpeg ou png")
+        return
+      }
+    }
   }
 
   return (
@@ -40,9 +101,29 @@ function Dashboard() {
             <FiUpload size={30} color="#000" />
           </div>
           <div className=" cursor-pointer">
-            <input className="cursor-pointer opacity-0 h-32 w-full" type="file" accept="image/*" />
+            <input
+              className="cursor-pointer opacity-0 h-32 w-full"
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+            />
           </div>
         </button>
+
+        {carImages.map(image => (
+          <div key={image.name} className="w-48 h-32 rounded-lg flex justify-center items-center cursor-pointer group hover:brightness-75">
+            <button
+              onClick={() => handleDeleteImage(image)}
+              className="absolute cursor-pointer hidden group-hover:block" >
+              <FiTrash size={28} color="#fff" />
+            </button>
+            <img
+              src={image.previewUrl}
+              className="rounded-lg w-full h-32 object-cover"
+              alt="Foto do carro"
+            />
+          </div>
+        ))}
       </div>
 
       <div className="w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row items-center gap-2 mt-2">
