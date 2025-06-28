@@ -8,7 +8,8 @@ import { useContext, useState, type ChangeEvent } from "react"
 import { AuthContext } from "../../contexts/auth"
 import { v4 as uuidv4 } from 'uuid'
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
-import { storage } from "../../services/firebaseConnection"
+import { db, storage } from "../../services/firebaseConnection"
+import { addDoc, collection } from "firebase/firestore"
 
 const schema = z.object({
   name: z.string().nonempty("O nome do carro é obrigatório"),
@@ -42,8 +43,40 @@ function Dashboard() {
   const { user } = useContext(AuthContext)
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
-    reset()
+    if (carImages.length === 0) {
+      alert("Selecione pelo menos uma imagem")
+      return
+    }
+
+    const carListImages = carImages.map(item => {
+      return {
+        uid: item.userUid,
+        name: item.name,
+        url: item.url
+      }
+    })
+
+    addDoc(collection(db, "cars"), {
+      name: data.name,
+      model: data.model,
+      whatsapp: data.whatsapp,
+      city: data.city,
+      year: data.year,
+      km: data.km,
+      price: data.price,
+      description: data.description,
+      created: new Date(),
+      owner: user?.name,
+      ownerUID: user?.uid,
+      images: carListImages
+    }).then(() => {
+      console.log("Carro adicionado com sucesso!")
+    }).catch(err => console.log("erro ao cadatsrar o carro", err))
+      .finally(() => {
+        reset()
+        setCarImages([])
+      })
+
   }
 
   const handleUpload = (image: File) => {
@@ -212,7 +245,7 @@ function Dashboard() {
             {errors.description && <p className="my-1 text-red-500">{errors.description?.message}</p>}
           </div>
 
-          <button type="submit" className="w-full rounded-md bg-zinc-900 text-white font-medium h-10">Cadastrar</button>
+          <button type="submit" className="w-full rounded-md bg-zinc-900 text-white font-medium h-10 cursor-pointer">Cadastrar</button>
         </form>
       </div>
     </>
