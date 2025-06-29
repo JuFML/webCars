@@ -95,7 +95,7 @@ function Register() {
             />
           </div>
 
-          <button type="submit" className="bg-zinc-900 w-full rounded-md text-white h-10 font=medium">Cadastrar</button>
+          <button type="submit" className="bg-zinc-900 w-full rounded-md text-white h-10 font=medium cursor-pointer">Cadastrar</button>
         </form>
 
         <Link to="/login"> Já possui uma conta? Faça o login!</Link>
