@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import CarCard from "../../components/carCard"
-import { collection, getDocs, orderBy, query } from "firebase/firestore"
-import { db } from "../../services/firebaseConnection"
+import { orderBy } from "firebase/firestore"
+import { Link } from "react-router";
+import { useCars } from "../../hooks/useCars";
 
 export interface CarProps {
   id: string;
   city: string;
   created: string;
   description: string;
-  images: string[];
+  images: ImageCarProps[];
   km: string;
   model: string;
   name: string;
@@ -19,36 +20,19 @@ export interface CarProps {
   year: string;
 }
 
+interface ImageCarProps {
+  name: string;
+  uid: string;
+  url: string;
+}
+
+
 function Home() {
-  const [cars, setCars] = useState<CarProps[]>([])
+  const { cars, loadCars } = useCars([orderBy("created", "desc")])
+
 
   useEffect(() => {
-    const carsRef = collection(db, "cars")
-    const queryRef = query(carsRef, orderBy("created", "desc"))
-
-    const carsList = [] as CarProps[]
-    getDocs(queryRef)
-      .then((snapshot) => {
-        snapshot.forEach(item => {
-          carsList.push({
-            id: item.id,
-            city: item.data().city,
-            created: item.data().created,
-            description: item.data().description,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            images: item.data().images.map((img: any) => img.url),
-            km: item.data().km,
-            model: item.data().model,
-            name: item.data().name,
-            owner: item.data().owner,
-            ownerUID: item.data().ownerUID,
-            price: item.data().price,
-            whatsapp: item.data().whatsapp,
-            year: item.data().year
-          })
-        })
-        setCars(carsList)
-      })
+    loadCars()
   }, [])
 
   return (
@@ -66,7 +50,10 @@ function Home() {
 
       <main className="w-full grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {cars.map((car) => (
-          <CarCard key={car.id} {...car} />
+
+          <Link key={car.id} to={`car/${car.id}`}>
+            <CarCard key={car.id} {...car} />
+          </Link>
         ))}
       </main>
     </>
