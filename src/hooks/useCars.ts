@@ -36,7 +36,7 @@ export const useCars = (customQueryConstraints?: QueryConstraint[]) => {
       })
   }
 
-  return { cars, loadCars }
+  return { cars, setCars, loadCars }
 
 }
 

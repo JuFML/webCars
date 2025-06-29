@@ -52,7 +52,7 @@ function Home() {
         {cars.map((car) => (
 
           <Link key={car.id} to={`car/${car.id}`}>
-            <CarCard key={car.id} {...car} />
+            <CarCard key={car.id} car={car} />
           </Link>
         ))}
       </main>

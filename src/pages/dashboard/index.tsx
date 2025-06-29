@@ -1,14 +1,39 @@
 import { useEffect, useContext } from "react"
 import CarCard from "../../components/carCard"
-import { where } from "firebase/firestore"
+import { deleteDoc, doc, where } from "firebase/firestore"
 import DashboardHeader from "../../components/dashboardHeader"
 import { AuthContext } from "../../contexts/auth"
 import { useCars } from "../../hooks/useCars"
+import { db, storage } from "../../services/firebaseConnection"
+import type { CarProps } from "../home"
+import { deleteObject, ref } from "firebase/storage"
 
 
 function Dashboard() {
   const { user } = useContext(AuthContext)
-  const { cars, loadCars } = useCars([where("ownerUID", "==", user?.uid)])
+  const { cars, setCars, loadCars } = useCars([where("ownerUID", "==", user?.uid)])
+
+  const handleDeleteCar = (car: CarProps) => {
+    const docRef = doc(db, "cars", car.id)
+    deleteDoc(docRef)
+      .then(() => {
+        car.images.map(image => {
+          const imagePath = `images/${image.uid}/${image.name}`
+          const imageRef = ref(storage, imagePath)
+
+          deleteObject(imageRef)
+            .then(() => {
+              setCars(cars.filter(item => item.id !== car.id))
+              console.log("Imagens eliminadas com sucesso")
+            })
+            .catch((err) => console.log("Algo deu errado ao eliminar as imagesn ", err))
+        })
+
+
+        console.log("Carro deletado com sucesso")
+      })
+      .catch((err) => console.log("Erro ao dele o Carro", err))
+  }
 
   useEffect(() => {
     if (!user?.uid) {
@@ -33,7 +58,7 @@ function Dashboard() {
 
       <main className="w-full grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {cars.map((car) => (
-          <CarCard key={car.id} showDeleteIcon {...car} />
+          <CarCard car={car} key={car.id} handleDeleteCar={handleDeleteCar} showDeleteIcon />
         ))}
       </main>
     </>
