@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { db, storage } from "../../../services/firebaseConnection"
 import { addDoc, collection } from "firebase/firestore"
+import { toast } from "react-toastify"
 
 const schema = z.object({
   name: z.string().nonempty("O nome do carro é obrigatório"),
@@ -70,8 +71,8 @@ function New() {
       ownerUID: user?.uid,
       images: carListImages
     }).then(() => {
-      console.log("Carro adicionado com sucesso!")
-    }).catch(err => console.log("erro ao cadatsrar o carro", err))
+      toast.success("Carro cadastrado com sucesso!")
+    }).catch(err => toast.error("erro ao cadastrar o carro", err))
       .finally(() => {
         reset()
         setCarImages([])
@@ -109,7 +110,7 @@ function New() {
     deleteObject(imageRef).then(() => {
       console.log("Imagem deletada")
       setCarImages(carImages.filter(item => item.name !== image.name))
-    }).catch((err) => console.log("Erro ao deletar", err))
+    }).catch((err) => console.log("Erro ao deletar a imagem", err))
   }
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {

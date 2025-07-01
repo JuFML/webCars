@@ -7,6 +7,7 @@ import { useCars } from "../../hooks/useCars"
 import { db, storage } from "../../services/firebaseConnection"
 import type { CarProps } from "../home"
 import { deleteObject, ref } from "firebase/storage"
+import { toast } from "react-toastify"
 
 
 function Dashboard() {
@@ -26,13 +27,11 @@ function Dashboard() {
               setCars(cars.filter(item => item.id !== car.id))
               console.log("Imagens eliminadas com sucesso")
             })
-            .catch((err) => console.log("Algo deu errado ao eliminar as imagesn ", err))
+            .catch((err) => console.log("Algo deu errado ao eliminar as imagens ", err))
         })
-
-
-        console.log("Carro deletado com sucesso")
+        toast.success("Carro deletado com sucesso")
       })
-      .catch((err) => console.log("Erro ao dele o Carro", err))
+      .catch((err) => toast.error("Erro ao deletar o Carro", err))
   }
 
   useEffect(() => {
@@ -40,7 +39,7 @@ function Dashboard() {
       return
     }
     loadCars()
-  }, [user])
+  }, [user, loadCars])
 
   return (
     <>

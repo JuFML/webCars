@@ -8,6 +8,7 @@ import { auth } from "../../services/firebaseConnection"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { useContext, useEffect, useState } from "react"
 import { AuthContext } from "../../contexts/auth"
+import { toast } from "react-toastify"
 
 
 const schema = z.object({
@@ -32,15 +33,17 @@ function Register() {
   const { updateUserInfo } = useContext(AuthContext)
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
     createUserWithEmailAndPassword(auth, data.email, data.password)
       .then((user) => {
-        console.log("USUARIO REGISTRADO", user.user)
+        toast.success("USUARIO REGISTRADO COM SUCESSO")
         updateProfile(user.user, { displayName: data.name })
         updateUserInfo({ name: data.name, email: data.email, uid: user.user.uid })
         navigate("/dashboard", { replace: true })
       })
-      .catch((err) => console.log("ERRO AO CADASTRAR ESTE USUARIO", err))
+      .catch((err) => {
+        toast.error("ERRO AO CADASTRAR ESTE USUARIO")
+        console.log("ERRO AO CADASTRAR ESTE USUARIO", err)
+      })
   }
 
   useEffect(() => {
